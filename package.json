@@ -2,11 +2,10 @@
     "name": "backend",
     "version": "1.0.0",
     "main": "server.ts",
-    "type": "module",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "build": "tsc",
-        "dev": "node ./build/server.js",
+        "dev": "node --env-file=.env ./build/server.js",
         "start": "tsc && npm run dev"
     },
     "author": "",
