@@ -25,8 +25,6 @@ interface IJwtPayload extends JwtPayload {
 const authenticate = (req: Request, res: Response, next: NextFunction) => {
     const accessToken = req.headers["authorization"];
     const refreshToken = req.cookies["refreshToken"];
-    console.log("accessToken: " + accessToken);
-    console.log("refreshToken: " + refreshToken);
 
     if (!accessToken && !refreshToken) {
         console.log("Access Denied.");

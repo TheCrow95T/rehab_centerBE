@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const adminController_1 = require("./controller/adminController");
+const patient_1 = __importDefault(require("./routes/patient"));
 // import authenticate from "./middleware/jwtCheck";
 const notFound_1 = __importDefault(require("./middleware/notFound"));
 const error_1 = __importDefault(require("./middleware/error"));
@@ -28,7 +29,8 @@ app.use((0, cors_1.default)(corsOptions));
 app.use(headerCheck_1.default);
 // Routes
 app.post("/api/login", adminController_1.login);
-// app.use("/api/admin", authenticate, (req,res)=>res.json({msg:'hello admin'}));
+app.use("/api/patient", patient_1.default);
+// app.use("/api/patient", authenticate, patient);
 // Error handler
 app.use(notFound_1.default);
 app.use(error_1.default);

@@ -7,8 +7,6 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const authenticate = (req, res, next) => {
     const accessToken = req.headers["authorization"];
     const refreshToken = req.cookies["refreshToken"];
-    console.log("accessToken: " + accessToken);
-    console.log("refreshToken: " + refreshToken);
     if (!accessToken && !refreshToken) {
         console.log("Access Denied.");
         return res.status(401).send("Access Denied. No token provided.");

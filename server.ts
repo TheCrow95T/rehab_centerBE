@@ -2,7 +2,8 @@ import express, {RequestHandler} from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
-import {login} from "./controller/adminController"
+import {login} from "./controller/adminController";
+import patient from "./routes/patient";
 // import authenticate from "./middleware/jwtCheck";
 import notFound from "./middleware/notFound";
 import errorHandler from "./middleware/error";
@@ -28,7 +29,8 @@ app.use(headerCheck as RequestHandler);
 
 // Routes
 app.post("/api/login", login);
-// app.use("/api/admin", authenticate, (req,res)=>res.json({msg:'hello admin'}));
+app.use("/api/patient",  patient);
+// app.use("/api/patient", authenticate, patient);
 
 // Error handler
 app.use(notFound);
