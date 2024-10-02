@@ -37,6 +37,53 @@ export const getPatientList = async (
   }
 };
 
+export const getRegistrationByPatient = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { identification_number, page } = req.query;
+
+  if (!identification_number || !page) {
+    const error: ErrorWithStatus = new Error(`Insufficient body submitted`);
+    error.status = 400;
+    return next(error);
+  }
+
+  if (typeof page !== "string") {
+    const error: ErrorWithStatus = new Error(`Invalid query submitted`);
+    error.status = 400;
+    return next(error);
+  }
+
+  const pagePG = parseInt(page) > 1 ? (parseInt(page) - 1) * 50 : 0;
+
+  try {
+    const client = new Client();
+    await client.connect();
+
+    const queryString = [
+      "SELECT outlet_name, treatment_date, start_time, end_time",
+      "FROM public.treatment_session",
+      "LEFT JOIN public.timeslot ON public.rehab_center.timeslot_id = public.timeslot.id",
+      "LEFT JOIN public.outlet_location ON public.rehab_center.outlet_id = public.outlet_location.id",
+      "WHERE identification_number = $1",
+      "OFFSET $2 LIMIT 50",
+    ];
+
+    const query = await client.query(queryString.join(" "), [
+      identification_number,
+      pagePG,
+    ]);
+
+    res.json({ message: "database success", patienceArray: query.rows });
+    await client.end();
+  } catch (e) {
+    console.log(e);
+    res.json({ message: "database error" });
+  }
+};
+
 export const createNewPatient = async (
   req: Request,
   res: Response,
@@ -147,9 +194,9 @@ export const updatePatientDetails = async (
     );
 
     if (query.rows.length > 0) {
-      res.json({ message: "Patient edit success", result: query.rows[0] });
+      res.json({ message: "Patient edit success" });
     } else {
-      res.json({ message: "Patient create failed", result: [] });
+      res.json({ message: "Patient create failed" });
     }
     await client.end();
   } catch (e) {
