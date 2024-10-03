@@ -1,13 +1,12 @@
 import express from "express";
 const router = express.Router();
-import { createNewPatient} from "../controller/patientController";
-import { getRegistrationSummaryList, updatePatientAttendance } from "../controller/registrationController";
+import { getRegistrationSummaryList, registerSession, updatePatientAttendance } from "../controller/registrationController";
 
-// list patients details by list
-router.get("/list", getRegistrationSummaryList);
+// list registration Summary for selected outlet by treatment date, timeslot
+router.post("/list", getRegistrationSummaryList);
 
 // register new session
-router.post("/create", createNewPatient);
+router.post("/register", registerSession);
 
 // update register attendance
 router.put("/update", updatePatientAttendance);

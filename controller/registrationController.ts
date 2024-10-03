@@ -10,7 +10,7 @@ export const getRegistrationSummaryList = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const { outlet_id, start_date, end_date } = req.query;
+  const { outlet_id, start_date, end_date } = req.body;
 
   if (!outlet_id || !start_date || !end_date) {
     const error: ErrorWithStatus = new Error(`Insufficient body submitted`);
@@ -25,9 +25,9 @@ export const getRegistrationSummaryList = async (
     const queryString = [
       "SELECT treatment_date, start_time, end_time,COUNT(*) as population",
       "FROM public.treatment_session",
-      "LEFT JOIN public.timeslot ON public.rehab_center.timeslot_id = public.timeslot.id",
+      "LEFT JOIN public.timeslot ON public.treatment_session.timeslot_id = public.timeslot.id",
       "WHERE outlet_id = $1 AND treatment_date >= $2 AND treatment_date < $3",
-      "GROUP BY treatment_date, timeslot_id",
+      "GROUP BY treatment_date, start_time, end_time",
     ];
 
     const query = await client.query(queryString.join(" "), [
@@ -64,10 +64,10 @@ export const registerSession = async (
 
     const queryString = [
       "INSERT INTO public.treatment_session (identification_number,outlet_id,timeslot_id, treatment_date)",
-      "SELECT ($1,$2,$3, DATE $4)",
-      "WHERE (SELECT COUNT(*) FROM public.treatment_session WHERE identification_number = $1 AND treatment_date = DATE $4) = 0",
-      "AND (SELECT COUNT(*) FROM public.treatment_session WHERE identification_number = $1 AND date_part('week', DATE $4) = date+part('week', treatment_date)) < 2",
-      "AND (SELECT COUNT(*) FROM public.treatment_session WHERE timeslot_id = $3 treatment_date = DATE $4) > 3",
+      "SELECT $1,$2,$3,$4",
+      "WHERE (SELECT COUNT(*) FROM public.treatment_session WHERE identification_number = $1 AND treatment_date = $4) = 0",
+      "AND (SELECT COUNT(*) FROM public.treatment_session WHERE identification_number = $1 AND date_part('week', $4) = date_part('week', treatment_date)) < 2",
+      "AND (SELECT COUNT(*) FROM public.treatment_session WHERE timeslot_id = $3 AND treatment_date = $4 AND outlet_id = $2) < 3",
       "RETURNING *",
     ];
 
@@ -90,9 +90,9 @@ export const registerSession = async (
       };
 
       const queryString2 = [
-        "SELECT COUNT(*)  FILTER ( WHERE identification_number = $1 AND treatment_date = DATE $2 ) as specific_patient_count_today,",
-        "COUNT(*) FILTER( WHERE identification_number = $1 AND date_part('week', DATE $2) = date+part('week', treatment_date)) < 2  ) as specific_patient_count_week_quota,",
-        "COUNT(*) FILTER ( WHERE timeslot_id = $3 treatment_date = DATE $2) > 3 ) as patient_count_session",
+        "SELECT COUNT(*)  FILTER ( WHERE identification_number = $1 AND treatment_date = $2 ) as specific_patient_count_today,",
+        "COUNT(*) FILTER( WHERE identification_number = $1 AND date_part('week',  $2) = date_part('week', treatment_date))    as specific_patient_count_week_quota,",
+        "COUNT(*) FILTER ( WHERE timeslot_id = $3 AND treatment_date = $2 AND outlet_id = $4)  as patient_count_session",
         "FROM public.treatment_session",
       ];
 
@@ -100,6 +100,7 @@ export const registerSession = async (
         identification_number,
         treatment_date,
         timeslot_id,
+        outlet_id,
       ]);
 
       if (query2.rows[0].specific_patient_count_today >= 1) {
@@ -107,9 +108,7 @@ export const registerSession = async (
       } else if (query2.rows[0].specific_patient_count_week_quota >= 2) {
         result.message = "This patient has reach weekly limit!";
       } else if (query2.rows[0].patient_count_session >= 3) {
-        result.message = "Busy time slot, try another time slot";
-      } else {
-        result.message = "database error";
+        result.message = "Busy time slot, try another time slot!";
       }
       res.json(result);
     }

@@ -24,12 +24,72 @@ export const getPatientList = async (
     const client = new Client();
     await client.connect();
 
-    const query = await client.query(
-      "SELECT identification_number, fullname, date_of_birth, gender, phone_number, home_address, email, recover FROM rehab_center.public.customer  OFFSET $1 LIMIT 50",
-      [pagePG],
+    const queryString = [
+      "SELECT identification_number, fullname, date_of_birth, gender, recover",
+      "FROM rehab_center.public.customer",
+      "OFFSET $1 LIMIT 50",
+    ];
+
+    const query = await client.query(queryString.join(" "), [pagePG]);
+
+    const query2 = await client.query(
+      "SELECT COUNT(*) as total_record FROM rehab_center.public.customer",
+      [],
     );
 
-    res.json({ message: "database success", patienceArray: query.rows });
+    const totalPage = Math.ceil(query2.rows[0].total_record / 50);
+
+    res.json({
+      message: "database success",
+      patienceTotalPage: totalPage,
+      patienceArray: query.rows,
+    });
+    await client.end();
+  } catch (e) {
+    console.log(e);
+    res.json({ message: "database error" });
+  }
+};
+
+export const getPatientDetails = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { identification_number } = req.body;
+
+  if (!identification_number) {
+    const error: ErrorWithStatus = new Error(`Insufficient body submitted`);
+    error.status = 400;
+    return next(error);
+  }
+
+  try {
+    const client = new Client();
+    await client.connect();
+
+    const queryString = [
+      "SELECT identification_number, fullname, date_of_birth, gender, phone_number, home_address, email, recover",
+      "FROM rehab_center.public.customer",
+      "WHERE identification_number = $1",
+    ];
+
+    const query = await client.query(queryString.join(" "), [
+      identification_number,
+    ]);
+
+    const query2 = await client.query(
+      "SELECT COUNT(*) as total_record FROM rehab_center.public.customer",
+      [],
+    );
+
+    const totalPage = Math.ceil(query2.rows[0].total_record / 50);
+
+    res.json({
+      message: "database success",
+      patienceTotalPage: totalPage,
+      patienceArray: query.rows,
+    });
     await client.end();
   } catch (e) {
     console.log(e);
@@ -42,7 +102,8 @@ export const getRegistrationByPatient = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const { identification_number, page } = req.query;
+  const { page } = req.query;
+  const { identification_number } = req.body;
 
   if (!identification_number || !page) {
     const error: ErrorWithStatus = new Error(`Insufficient body submitted`);
@@ -63,10 +124,10 @@ export const getRegistrationByPatient = async (
     await client.connect();
 
     const queryString = [
-      "SELECT outlet_name, treatment_date, start_time, end_time",
+      "SELECT outlet_id, outlet_name, treatment_date, start_time, end_time, attendance",
       "FROM public.treatment_session",
-      "LEFT JOIN public.timeslot ON public.rehab_center.timeslot_id = public.timeslot.id",
-      "LEFT JOIN public.outlet_location ON public.rehab_center.outlet_id = public.outlet_location.id",
+      "LEFT JOIN public.timeslot ON public.treatment_session.timeslot_id = public.timeslot.id",
+      "LEFT JOIN public.outlet_location ON public.treatment_session.outlet_id = public.outlet_location.id",
       "WHERE identification_number = $1",
       "OFFSET $2 LIMIT 50",
     ];
@@ -76,7 +137,21 @@ export const getRegistrationByPatient = async (
       pagePG,
     ]);
 
-    res.json({ message: "database success", patienceArray: query.rows });
+    const queryString2 = [
+      "SELECT COUNT(*) as total_record FROM public.treatment_session",
+      "WHERE identification_number = $1",
+    ];
+    const query2 = await client.query(queryString2.join(" "), [
+      identification_number,
+    ]);
+
+    const totalPage = Math.ceil(query2.rows[0].total_record / 50);
+
+    res.json({
+      message: "database success",
+      patienceTotalPage: totalPage,
+      patienceArray: query.rows,
+    });
     await client.end();
   } catch (e) {
     console.log(e);
@@ -121,22 +196,25 @@ export const createNewPatient = async (
     const client = new Client();
     await client.connect();
 
-    const query = await client.query(
-      "INSERT INTO rehab_center.public.customer (identification_number,fullname,date_of_birth,gender,phone_number,home_address,email) VALUES($1,$2,$3,$4,$5,($6,$7,$8,$9,$10),$11) RETURNING *",
-      [
-        identification_number,
-        fullname,
-        date_of_birth,
-        gender,
-        phone_number,
-        home_address.street,
-        home_address.city,
-        home_address.state,
-        home_address.postcode,
-        home_address.country,
-        email,
-      ],
-    );
+    const queryString = [
+      "INSERT INTO public.customer (identification_number,fullname,date_of_birth,gender,phone_number,home_address,email)",
+      "VALUES($1,$2,$3,$4,$5,($6,$7,$8,$9,$10),$11)",
+      "RETURNING *",
+    ];
+
+    const query = await client.query(queryString.join(" "), [
+      identification_number,
+      fullname,
+      date_of_birth,
+      gender,
+      phone_number,
+      home_address.street,
+      home_address.city,
+      home_address.state,
+      home_address.postcode,
+      home_address.country,
+      email,
+    ]);
 
     if (query.rows.length > 0) {
       res.json({ message: "Patient create success", result: query.rows[0] });
@@ -178,25 +256,28 @@ export const updatePatientDetails = async (
     const client = new Client();
     await client.connect();
 
-    const query = await client.query(
-      "UPDATE rehab_center.public.customer SET phone_number=$1,home_address=($2,$3,$4,$5,$6),email = $7,recover= $8 WHERE identification_number=$9 RETURNING *",
-      [
-        phone_number,
-        home_address.street,
-        home_address.city,
-        home_address.state,
-        home_address.postcode,
-        home_address.country,
-        email,
-        recovery,
-        identification_number,
-      ],
-    );
+    const queryString = [
+      "UPDATE public.customer",
+      "SET phone_number=$1,home_address=($2,$3,$4,$5,$6),email = $7,recover= $8",
+      "WHERE identification_number=$9 RETURNING *",
+    ];
+
+    const query = await client.query(queryString.join(" "), [
+      phone_number,
+      home_address.street,
+      home_address.city,
+      home_address.state,
+      home_address.postcode,
+      home_address.country,
+      email,
+      recovery,
+      identification_number,
+    ]);
 
     if (query.rows.length > 0) {
-      res.json({ message: "Patient edit success" });
+      res.json({ message: "Patient edit success", result: query.rows[0] });
     } else {
-      res.json({ message: "Patient create failed" });
+      res.json({ message: "Patient edit failed", result: [] });
     }
     await client.end();
   } catch (e) {

@@ -1,9 +1,12 @@
 import express from "express";
 const router = express.Router();
-import { createNewPatient, getPatientList, getRegistrationByPatient, updatePatientDetails } from "../controller/patientController";
+import { createNewPatient, getPatientDetails, getPatientList, getRegistrationByPatient, updatePatientDetails } from "../controller/patientController";
 
 // list patients details by page
 router.get("/list", getPatientList);
+
+// get patient details by identification card
+router.post("/details", getPatientDetails);
 
 // list patient register by page
 router.post("/list/register", getRegistrationByPatient);

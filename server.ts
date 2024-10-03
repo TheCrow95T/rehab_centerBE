@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 
 import {login} from "./controller/adminController";
 import patient from "./routes/patient";
+import registration from "./routes/registration";
 // import authenticate from "./middleware/jwtCheck";
 import notFound from "./middleware/notFound";
 import errorHandler from "./middleware/error";
@@ -30,6 +31,7 @@ app.use(headerCheck as RequestHandler);
 // Routes
 app.post("/api/login", login);
 app.use("/api/patient",  patient);
+app.use("/api/session",  registration);
 // app.use("/api/patient", authenticate, patient);
 
 // Error handler
