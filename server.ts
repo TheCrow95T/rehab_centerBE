@@ -2,7 +2,7 @@ import express, {RequestHandler} from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
-import {login} from "./controller/adminController";
+import {getRehabCenterData, login} from "./controller/adminController";
 import patient from "./routes/patient";
 import registration from "./routes/registration";
 // import authenticate from "./middleware/jwtCheck";
@@ -14,6 +14,7 @@ const port = process.env.PORT || 8000;
 const app = express();
 
 //TODO: check if bcrypt updated for dependency issue on memory leak
+
 // Body parser middleware for incoming
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -30,9 +31,11 @@ app.use(headerCheck as RequestHandler);
 
 // Routes
 app.post("/api/login", login);
+app.get("/api/data", getRehabCenterData);
 app.use("/api/patient",  patient);
 app.use("/api/session",  registration);
 // app.use("/api/patient", authenticate, patient);
+//TODO: add api for getting outlet_location from table and timeslot
 
 // Error handler
 app.use(notFound);

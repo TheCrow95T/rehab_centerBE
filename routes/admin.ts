@@ -4,7 +4,7 @@ import {
 } from "../controller/adminController";
 const router = express.Router();
 
-// login
+// login -- not use
 router.post("/user/login", login);
 
 export default router;

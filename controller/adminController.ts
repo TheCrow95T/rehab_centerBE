@@ -79,3 +79,35 @@ export const login = async (
         res.json({ message: "database error" });
     }
 };
+
+export const getRehabCenterData = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const client = new Client();
+        await client.connect();
+
+        const query = await client.query(
+            "SELECT id, outlet_name FROM public.outlet_location",
+            [],
+        );
+
+        const query2 = await client.query(
+            "SELECT id, start_time, end_time FROM public.timeslot",
+            [],
+        );
+
+
+        res.json({
+            message: "database success",
+            outlet_list: query.rows,
+            time_slot: query2.rows,
+        });
+        await client.end();
+    } catch (e) {
+        console.log(e);
+        res.json({ message: "database error" });
+    }
+};
