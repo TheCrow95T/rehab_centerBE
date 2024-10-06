@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser";
 import {getRehabCenterData, login} from "./controller/adminController";
 import patient from "./routes/patient";
 import registration from "./routes/registration";
-// import authenticate from "./middleware/jwtCheck";
+import authenticate from "./middleware/jwtCheck";
 import notFound from "./middleware/notFound";
 import errorHandler from "./middleware/error";
 import headerCheck from "./middleware/headerCheck";
@@ -31,11 +31,9 @@ app.use(headerCheck as RequestHandler);
 
 // Routes
 app.post("/api/login", login);
-app.get("/api/data", getRehabCenterData);
-app.use("/api/patient",  patient);
-app.use("/api/session",  registration);
-// app.use("/api/patient", authenticate, patient);
-//TODO: add api for getting outlet_location from table and timeslot
+app.get("/api/data", authenticate as RequestHandler, getRehabCenterData);
+app.use("/api/patient",authenticate as RequestHandler,  patient);
+app.use("/api/session",authenticate as RequestHandler,  registration);
 
 // Error handler
 app.use(notFound);

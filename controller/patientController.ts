@@ -124,7 +124,7 @@ export const getRegistrationByPatient = async (
     await client.connect();
 
     const queryString = [
-      "SELECT outlet_id, outlet_name, to_char(treatment_date,'YYYY-MM-DD') AS treatment_date, start_time, end_time, attendance",
+      "SELECT public.treatment_session.id, outlet_id, outlet_name, to_char(treatment_date,'YYYY-MM-DD') AS treatment_date, start_time, end_time, attendance",
       "FROM public.treatment_session",
       "LEFT JOIN public.timeslot ON public.treatment_session.timeslot_id = public.timeslot.id",
       "LEFT JOIN public.outlet_location ON public.treatment_session.outlet_id = public.outlet_location.id",
