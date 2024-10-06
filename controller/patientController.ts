@@ -18,16 +18,16 @@ export const getPatientList = async (
     return next(error);
   }
 
-  const pagePG = parseInt(page) > 1 ? (parseInt(page) - 1) * 50 : 0;
+  const pagePG = parseInt(page) > 1 ? (parseInt(page) - 1) * 10 : 0;
 
   try {
     const client = new Client();
     await client.connect();
 
     const queryString = [
-      "SELECT identification_number, fullname, date_of_birth, gender, recover",
+      "SELECT identification_number, fullname, to_char(date_of_birth,'YYYY-MM-DD') AS date_of_birth, gender, recover",
       "FROM rehab_center.public.customer",
-      "OFFSET $1 LIMIT 50",
+      "OFFSET $1 LIMIT 10",
     ];
 
     const query = await client.query(queryString.join(" "), [pagePG]);
@@ -37,7 +37,7 @@ export const getPatientList = async (
       [],
     );
 
-    const totalPage = Math.ceil(query2.rows[0].total_record / 50);
+    const totalPage = Math.ceil(query2.rows[0].total_record / 10);
 
     res.json({
       message: "database success",
@@ -69,7 +69,7 @@ export const getPatientDetails = async (
     await client.connect();
 
     const queryString = [
-      "SELECT identification_number, fullname, date_of_birth, gender, phone_number, home_address, email, recover",
+      "SELECT identification_number, fullname, to_char(date_of_birth,'YYYY-MM-DD') as date_of_birth, gender, phone_number, home_address, email, recover",
       "FROM rehab_center.public.customer",
       "WHERE identification_number = $1",
     ];
@@ -83,7 +83,7 @@ export const getPatientDetails = async (
       [],
     );
 
-    const totalPage = Math.ceil(query2.rows[0].total_record / 50);
+    const totalPage = Math.ceil(query2.rows[0].total_record / 10);
 
     res.json({
       message: "database success",
@@ -117,19 +117,20 @@ export const getRegistrationByPatient = async (
     return next(error);
   }
 
-  const pagePG = parseInt(page) > 1 ? (parseInt(page) - 1) * 50 : 0;
+  const pagePG = parseInt(page) > 1 ? (parseInt(page) - 1) * 10 : 0;
 
   try {
     const client = new Client();
     await client.connect();
 
     const queryString = [
-      "SELECT outlet_id, outlet_name, treatment_date, start_time, end_time, attendance",
+      "SELECT outlet_id, outlet_name, to_char(treatment_date,'YYYY-MM-DD') AS treatment_date, start_time, end_time, attendance",
       "FROM public.treatment_session",
       "LEFT JOIN public.timeslot ON public.treatment_session.timeslot_id = public.timeslot.id",
       "LEFT JOIN public.outlet_location ON public.treatment_session.outlet_id = public.outlet_location.id",
       "WHERE identification_number = $1",
-      "OFFSET $2 LIMIT 50",
+      "ORDER BY treatment_date, start_time",
+      "OFFSET $2 LIMIT 10",
     ];
 
     const query = await client.query(queryString.join(" "), [
@@ -145,7 +146,7 @@ export const getRegistrationByPatient = async (
       identification_number,
     ]);
 
-    const totalPage = Math.ceil(query2.rows[0].total_record / 50);
+    const totalPage = Math.ceil(query2.rows[0].total_record / 10);
 
     res.json({
       message: "database success",

@@ -28,6 +28,7 @@ export const getRegistrationSummaryList = async (
             "LEFT JOIN public.timeslot ON public.treatment_session.timeslot_id = public.timeslot.id",
             "WHERE outlet_id = $1 AND treatment_date >= $2 AND treatment_date <= $3",
             "GROUP BY treatment_date, start_time, end_time",
+            "ORDER BY treatment_date, start_time"
         ];
 
         const query = await client.query(queryString.join(" "), [
