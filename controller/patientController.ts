@@ -27,6 +27,7 @@ export const getPatientList = async (
     const queryString = [
       "SELECT identification_number, fullname, to_char(date_of_birth,'YYYY-MM-DD') AS date_of_birth, gender, recover",
       "FROM rehab_center.public.customer",
+      "ORDER BY date_of_birth, identification_number",
       "OFFSET $1 LIMIT 10",
     ];
 
