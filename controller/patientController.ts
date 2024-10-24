@@ -118,7 +118,7 @@ export const getRegistrationByPatient = async (
     return next(error);
   }
 
-  const pagePG = parseInt(page) > 1 ? (parseInt(page) - 1) * 10 : 0;
+  const pagePG = parseInt(page) > 1 ? (parseInt(page) - 1) * 5 : 0;
 
   try {
     const client = new Client();
@@ -131,7 +131,7 @@ export const getRegistrationByPatient = async (
       "LEFT JOIN public.outlet_location ON public.treatment_session.outlet_id = public.outlet_location.id",
       "WHERE identification_number = $1",
       "ORDER BY treatment_date, start_time",
-      "OFFSET $2 LIMIT 10",
+      "OFFSET $2 LIMIT 5",
     ];
 
     const query = await client.query(queryString.join(" "), [
@@ -147,7 +147,7 @@ export const getRegistrationByPatient = async (
       identification_number,
     ]);
 
-    const totalPage = Math.ceil(query2.rows[0].total_record / 10);
+    const totalPage = Math.ceil(query2.rows[0].total_record / 5);
 
     res.json({
       message: "database success",
