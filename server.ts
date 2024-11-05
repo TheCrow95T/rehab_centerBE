@@ -20,7 +20,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 const corsOptions = {
-  origin: "http://localhost:5173", //(https://your-client-app.com)
+  origin: process.env.FEDOMAIN, //(https://your-client-app.com)
   optionsSuccessStatus: 200,
   credentials: true,
 };
