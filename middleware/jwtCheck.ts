@@ -5,7 +5,7 @@ interface CustomRequest extends Request {
     user: {
         id: number;
         username: string;
-        password: string;
+        // password: string; // DO NOT INCLUDE PASSWORD IN JWT PAYLOAD
         panel_accessibility: string;
         general_accessibility: string;
     };
@@ -15,7 +15,7 @@ interface IJwtPayload extends JwtPayload {
     user: {
         id: number;
         username: string;
-        password: string;
+        // password: string; // DO NOT INCLUDE PASSWORD IN JWT PAYLOAD
         panel_accessibility: string;
         general_accessibility: string;
     };
