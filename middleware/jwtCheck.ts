@@ -1,8 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { Secret, JwtPayload, VerifyErrors } from "jsonwebtoken";
-import * as dotenv from "dotenv";
-
-dotenv.config(); // Ensure environment variables are loaded
 
 interface CustomRequest extends Request {
     token?: string; // Add token to request for potential downstream use
